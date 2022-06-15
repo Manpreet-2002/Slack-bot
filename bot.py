@@ -1,10 +1,14 @@
 from cgitb import text
+from time import thread_time, thread_time_ns
 import slack
 import os
 from pathlib import Path
 from dotenv import load_dotenv
 from flask import Flask,request,Response
 from slackeventsapi import SlackEventAdapter
+import string
+from datetime import datetime,timedelta
+
 
 
 env_path = Path('.') / '.env'
@@ -13,11 +17,27 @@ load_dotenv(dotenv_path=env_path)
 app = Flask(__name__)
 slack_event_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'],'/slack/events',app)
 
+my_channel = os.environ['MY_CHANNEL']
+
 client = slack.WebClient(token=os.environ['SLACK_TOKEN'])
 BOT_ID = client.api_call("auth.test")['user_id']
 
+SCHEDULED_MESSAGES = [
+    {
+        'text' : 'First Message',
+        'post_at' : (datetime.now()+timedelta(seconds=20)).timestamp(),
+        'channel' : 'my_channel'
+    },
+    {
+        'text' : 'Second Message',
+        'post_at' : (datetime.now()+timedelta(seconds=30)).timestamp(),
+        'channel' : 'my_channel'
+    }
+]
+
 message_counts = {}
 welcome_messages = {}
+BAD_WORDS = ['hmm','lmao ded','69']
 
 class WelcomeMessage:
     START_TEXT = {
@@ -76,6 +96,12 @@ def send_welcome_message(channel, user):
     welcome_messages[channel][user] = welcome
 
 
+def check_if_bad_words(message):
+    msg = message.lower()
+    msg = msg.translate(str.maketrans('','',string.punctuation))
+
+    return any(word in msg for word in BAD_WORDS)
+
 @slack_event_adapter.on('message')
 def message(payload):
     print(payload)
@@ -92,6 +118,10 @@ def message(payload):
         #client.chat_postMessage(channel=channel_id, text=text)
         if text.lower() == 'start':
             send_welcome_message(f'@{user_id}',user_id)
+        elif check_if_bad_words(text):
+            ts = event.get('ts')
+            client.chat_postMessage(channel=channel_id,thread_ts=ts,text="THAT'S A BAD WORD")
+            client.chat_delete(ts=ts,channel=channel_id)
 
 @slack_event_adapter.on('reaction_added')
 def reaction(payload):
