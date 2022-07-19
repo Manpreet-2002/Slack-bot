@@ -1,4 +1,3 @@
-from cgitb import text
 from time import thread_time, thread_time_ns
 import slack
 import re,os
@@ -7,7 +6,6 @@ from dotenv import load_dotenv
 from flask import Flask,request,Response
 from slackeventsapi import SlackEventAdapter
 from slack_sdk.errors import SlackApiError
-import string
 from datetime import datetime,timedelta
 from flask_restful import Api, Resource, reqparse, abort, fields, marshal_with
 from flask_sqlalchemy import SQLAlchemy
