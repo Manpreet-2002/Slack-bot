@@ -83,7 +83,7 @@ except SlackApiError as e:
 def get_similar_message(message):
     #print(message)
     event = message.get('event',{})
-    print(event)
+    #print(event)
     channel_id = event.get('channel')
     user = event.get('user')
     text = event.get('text')
@@ -117,7 +117,7 @@ def get_similar_message(message):
         # OPTIONAL: Convert Sparse Matrix to DF
         doc_term_matrix = sparse_matrix.todense()
         df2 = pd.DataFrame(doc_term_matrix, 
-                        columns=count_vectorizer.get_feature_names()) 
+                        columns=count_vectorizer.get_feature_names_out()) 
 
         dj=pd.DataFrame(cosine_similarity(df2, dense_output=True))
         #print(dj.head())
@@ -145,20 +145,43 @@ def get_similar_message(message):
             
         updated_df=pd.DataFrame(u)
 
+        print(updated_df.head().to_string(index=False))
+
         threshold = 0.5
         ids_above_threshold = []
         number_of_ids = 3
-        position_maxVal = np.argmax(updated_df[0])
+        # Part 02:
 
-        result2 = MessageModel.query.filter_by(id=position_maxVal).first()
+        position_maxVal=[]
+        for i in range(len(updated_df)):
+            position_maxVal.append(np.argmax(updated_df[i]))
+        print(position_maxVal)
+        sent_comp=[]
+
+
+        for j in position_maxVal: # list of highest similarity index positions
+        # this creates in order our tweets w/ highest similiarity by row    
+                    sent_comp.append(parse_tweets[j])
+
+        # tweets based on highest similarity value per row as DF
+        similar_tweets_=pd.DataFrame(sent_comp,columns=['Similar Message'])
+
+        # similiarity values rounded 4 decimal places finding max value per row
+        similarity_value_=pd.DataFrame(round(updated_df.max(axis=1),4),
+                                    columns=['Similarity Value'])
+
+        # tweets w/o html in them
+        p_twt=pd.DataFrame(parse_tweets,columns=['Parsed Message'])
+
+        # put everything together
+        cos_sim_df=pd.concat([p_twt,similar_tweets_,similarity_value_],axis=1)
+
+
+        print(cos_sim_df.head(8))
 
         new_msg = MessageModel(user_id=user, message_ts=ts, text=text, channel_id=conversation_id)
         db.session.add(new_msg)
         db.session.commit()
-
-
-        similar_query = client.chat_getPermalink(token='SLACK_TOKEN' , channel=conversation_id, message_ts='1655233788.378239')
-        print(similar_query)
 
 
 if __name__ == "__main__":
