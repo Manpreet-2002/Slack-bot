@@ -1,5 +1,6 @@
-![SLACK__BOT_🤖]
-(https://user-images.githubusercontent.com/79961524/179845326-a8398934-fbbb-4ff2-b3a9-02514e46ccb8.png)
+![SLACK__BOT_🤖](https://user-images.githubusercontent.com/79961524/179845326-a8398934-fbbb-4ff2-b3a9-02514e46ccb8.png)
+
+
 ```Bot2.py``` fetches all the messages in channels:history and checks if messages are not sent by the bot and then populates the fields -> user_id, channel_id, message_ts
 (messages timestamp) and text (the actual message) of an SQLite database that is managed by the ORM - SQLAlchemy. 
 
