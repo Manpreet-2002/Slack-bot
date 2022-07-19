@@ -1,6 +1,6 @@
 ![SLACK__BOT_🤖](https://user-images.githubusercontent.com/79961524/179845326-a8398934-fbbb-4ff2-b3a9-02514e46ccb8.png)
 
-Technologies Used -> Flask framework, RESTful API, SLACK API 
+Technologies Used -> Flask framework, REST API, SLACK API 
 
 Database Used -> SQLite, SQLAlchemy(ORM)
 
